@@ -52,6 +52,31 @@ def clean_number_of_dependents(df: pd.DataFrame) -> pd.DataFrame:
     df["number_of_dependents"] = df["NumberOfDependents"].fillna(0)
     return df
 
+def rename_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Renomme les colonnes brutes du dataset Give Me Some Credit vers des noms
+    cohérents avec la version SQL (voir sql/01_cleaning_legacy.sql), pour que
+    scoring_lib.features puisse être utilisé de façon identique après un
+    nettoyage SQL ou un nettoyage Python.
+
+    Args:
+        df: DataFrame avec les noms de colonnes originaux du CSV Kaggle
+
+    Returns:
+        DataFrame avec des noms de colonnes normalisés (snake_case)
+    """
+    df = df.copy()
+    df = df.rename(columns={
+        "SeriousDlqin2yrs": "target",
+        "RevolvingUtilizationOfUnsecuredLines": "revolving_utilization",
+        "NumberOfTime30-59DaysPastDueNotWorse": "times_30_59_days_late",
+        "DebtRatio": "debt_ratio",
+        "NumberOfOpenCreditLinesAndLoans": "open_credit_lines",
+        "NumberOfTimes90DaysLate": "times_90_days_late",
+        "NumberRealEstateLoansOrLines": "real_estate_loans",
+        "NumberOfTime60-89DaysPastDueNotWorse": "times_60_89_days_late",
+    })
+    return df
 
 def filter_invalid_age(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -73,17 +98,9 @@ def filter_invalid_age(df: pd.DataFrame) -> pd.DataFrame:
 def clean_pipeline(df: pd.DataFrame) -> pd.DataFrame:
     """
     Enchaîne toutes les étapes de nettoyage dans l'ordre correct.
-
-    C'est le point d'entrée unique à utiliser par le pipeline d'orchestration
-    (Semaine 5) et l'API de scoring (Semaine 6), pour garantir que les deux
-    appliquent exactement la même logique de nettoyage.
-
-    Args:
-        df: DataFrame brut (colonnes originales du dataset Give Me Some Credit)
-
-    Returns:
-        DataFrame nettoyé, prêt pour le feature engineering
+    ...
     """
+    df = rename_columns(df)
     df = filter_invalid_age(df)
     df = clean_monthly_income(df)
     df = clean_number_of_dependents(df)
