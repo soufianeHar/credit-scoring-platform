@@ -30,6 +30,7 @@ def clean_monthly_income(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     df["monthly_income_missing_flag"] = df["MonthlyIncome"].isna().astype(int)
     df["monthly_income_raw"] = df["MonthlyIncome"].fillna(-1)
+    df = df.drop(columns=["MonthlyIncome"])
     return df
 
 
@@ -50,6 +51,7 @@ def clean_number_of_dependents(df: pd.DataFrame) -> pd.DataFrame:
     """
     df = df.copy()
     df["number_of_dependents"] = df["NumberOfDependents"].fillna(0)
+    df = df.drop(columns=["NumberOfDependents"])
     return df
 
 def rename_columns(df: pd.DataFrame) -> pd.DataFrame:
@@ -67,6 +69,7 @@ def rename_columns(df: pd.DataFrame) -> pd.DataFrame:
     """
     df = df.copy()
     df = df.rename(columns={
+        "Unnamed: 0": "customer_id",
         "SeriousDlqin2yrs": "target",
         "RevolvingUtilizationOfUnsecuredLines": "revolving_utilization",
         "NumberOfTime30-59DaysPastDueNotWorse": "times_30_59_days_late",
