@@ -89,4 +89,7 @@ def scoring_pipeline(
 
 
 if __name__ == "__main__":
-    scoring_pipeline()
+    scoring_pipeline.serve(
+        name="scoring-pipeline-daily",
+        interval=86400,  # toutes les 24h (86400 secondes) - simule un ré-entraînement/scoring quotidien
+    )
