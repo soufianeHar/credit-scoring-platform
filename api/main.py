@@ -13,9 +13,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 import pandas as pd
 import joblib
-from fastapi import FastAPI
-from pydantic import BaseModel
-
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field, field_validator
 from scoring_lib.preprocessing import clean_pipeline
 from scoring_lib.features import build_features
 
@@ -31,17 +30,19 @@ class ClientData(BaseModel):
     """
     Structure attendue en entrée de l'API : les données brutes d'un client,
     avec les mêmes noms de colonnes que le CSV original (avant renommage).
+    Chaque champ a des bornes réalistes pour rejeter les données aberrantes
+    avant même d'atteindre le pipeline de scoring.
     """
-    age: int
-    RevolvingUtilizationOfUnsecuredLines: float
-    NumberOfTime30_59DaysPastDueNotWorse: int = None
-    DebtRatio: float
-    MonthlyIncome: float = None
-    NumberOfOpenCreditLinesAndLoans: int
-    NumberOfTimes90DaysLate: int
-    NumberRealEstateLoansOrLines: int
-    NumberOfTime60_89DaysPastDueNotWorse: int = None
-    NumberOfDependents: float = None
+    age: int = Field(..., gt=0, le=120, description="Âge du client, doit être positif")
+    RevolvingUtilizationOfUnsecuredLines: float = Field(..., ge=0)
+    NumberOfTime30_59DaysPastDueNotWorse: int = Field(0, ge=0)
+    DebtRatio: float = Field(..., ge=0)
+    MonthlyIncome: float = Field(None, ge=0)
+    NumberOfOpenCreditLinesAndLoans: int = Field(..., ge=0)
+    NumberOfTimes90DaysLate: int = Field(..., ge=0)
+    NumberRealEstateLoansOrLines: int = Field(..., ge=0)
+    NumberOfTime60_89DaysPastDueNotWorse: int = Field(0, ge=0)
+    NumberOfDependents: float = Field(None, ge=0)
 
 
 @app.get("/")
@@ -56,25 +57,26 @@ def score_client(client: ClientData):
     """
     Calcule le score de risque d'un client à partir de ses données brutes.
     """
-    # Convertir les données reçues en DataFrame d'une seule ligne
-    df = pd.DataFrame([client.model_dump()])
+    try:
+        df = pd.DataFrame([client.model_dump()])
 
-    # Renommer les colonnes vers les noms attendus par le pipeline
-    # (les underscores dans les noms Pydantic remplacent les tirets originaux)
-    df = df.rename(columns={
-        "NumberOfTime30_59DaysPastDueNotWorse": "NumberOfTime30-59DaysPastDueNotWorse",
-        "NumberOfTime60_89DaysPastDueNotWorse": "NumberOfTime60-89DaysPastDueNotWorse",
-    })
+        df = df.rename(columns={
+            "NumberOfTime30_59DaysPastDueNotWorse": "NumberOfTime30-59DaysPastDueNotWorse",
+            "NumberOfTime60_89DaysPastDueNotWorse": "NumberOfTime60-89DaysPastDueNotWorse",
+        })
 
-    # Ajouter une colonne 'Unnamed: 0' factice, car rename_columns() l'attend
-    df.insert(0, "Unnamed: 0", 0)
+        df.insert(0, "Unnamed: 0", 0)
 
-    # Appliquer le même pipeline que le batch
-    df_clean = clean_pipeline(df)
-    df_final = build_features(df_clean)
+        df_clean = clean_pipeline(df)
+        df_final = build_features(df_clean)
 
-    # Prédire
-    X = df_final.drop(columns=["customer_id"], errors="ignore")
-    risk_score = float(model.predict_proba(X)[:, 1][0])
+        X = df_final.drop(columns=["customer_id"], errors="ignore")
+        risk_score = float(model.predict_proba(X)[:, 1][0])
 
-    return {"risk_score": round(risk_score, 4)}
+        return {"risk_score": round(risk_score, 4)}
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erreur lors du calcul du score : {str(e)}"
+        )
