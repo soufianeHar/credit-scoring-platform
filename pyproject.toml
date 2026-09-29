@@ -22,7 +22,9 @@ dependencies = [
     "streamlit (>=1.64.0,<2.0.0)",
     "google-cloud-bigquery (>=3.45.2,<4.0.0)",
     "pyarrow (>=25.0.1,<26.0.0)",
-    "db-dtypes (>=1.7.1,<2.0.0)"
+    "db-dtypes (>=1.7.1,<2.0.0)",
+    "ollama (>=0.6.2,<0.7.0)",
+    "sqlglot (>=30.20.0,<31.0.0)"
 ]
 
 
