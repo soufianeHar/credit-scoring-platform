@@ -46,6 +46,7 @@ poetry install
 | API temps réel | `uvicorn api.main:app --reload` puis `/docs` | [`api/README.md`](api/README.md) |
 | Dashboard monitoring | `streamlit run monitoring/dashboard.py` | [`monitoring/README.md`](monitoring/README.md) |
 | Agent Talk-to-Data | `streamlit run agent/chat_ui.py` | [`agent/README.md`](agent/README.md) |
+| Portage Databricks (PySpark, MLflow, Job planifié) | voir le notebook | [`databricks/README.md`](databricks/README.md) |
 
 ## Stack technique
 

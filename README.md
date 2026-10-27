@@ -46,7 +46,7 @@ poetry install
 | Real-time API | `uvicorn api.main:app --reload` then `/docs` | [`api/README.md`](api/README.md) |
 | Monitoring dashboard | `streamlit run monitoring/dashboard.py` | [`monitoring/README.md`](monitoring/README.md) |
 | Talk-to-Data agent | `streamlit run agent/chat_ui.py` | [`agent/README.md`](agent/README.md) |
-
+| Databricks port (PySpark, MLflow, scheduled job) | see notebook | [`databricks/README.md`](databricks/README.md) |
 ## Tech stack
 
 Python, PostgreSQL, Google BigQuery, Poetry, pytest, scikit-learn, XGBoost,
